@@ -1,77 +1,64 @@
-# 🎓 Smart Campus Service Management
+# Smart Campus Service Management
 
-Hey everyone! 👋 Welcome to the **Smart Campus Service Request System**. 
+Welcome to the Smart Campus Service Request System. This project was built to solve a simple problem on campus: tracking and fixing broken infrastructure efficiently. 
 
-This is a project we built to solve a huge problem on campus: broken things staying broken because nobody knows who to tell. 
+It allows students to report issues, staff to claim and resolve them, and admins to oversee the entire process.
 
-Whether it's a broken light in the library, terrible Wi-Fi in the hostel, or a dripping pipe in the classroom, this app lets students report issues, staff pick them up, and admins oversee everything. 
-
-It's deployed live here: **[🔗 https://campus-fdb87.web.app](https://campus-fdb87.web.app)**
+Live Deployment: **[https://campus-fdb87.web.app](https://campus-fdb87.web.app)**
 
 ---
 
-## 🚀 What Does It Do?
+## Features by Role
 
-We built this with 3 main roles in mind:
+### 1. Students
+- Sign in with a student email.
+- Raise a request (e.g., Electrical, Plumbing, IT) with a description, location, and optional photo.
+- Track the status of active requests (Pending, In Progress, Resolved).
 
-### 🎒 1. Students (You and Me)
-- **Sign In/Sign Up:** Jump right in with your student email.
-- **Raise Requests:** Found a broken fan in Classroom 204? Take a photo, write a quick description, select the "Electrical" category, and hit submit. 
-- **Track It:** See your active requests in your dashboard. Watch the status change from `Pending` ➡ `In Progress` ➡ `Resolved`.
+### 2. Staff & Technicians
+- View a feed of all unassigned student requests.
+- Pick up tasks to add them to a personal queue.
+- Update task progress and mark issues as resolved when finished.
 
-### 🛠️ 2. Staff & Technicians
-- **Available Tasks:** See a feed of all unassigned student requests on campus.
-- **Pick Up Work:** See a plumbing issue nearby? Click "Pick Up Task" and it moves to your personal queue.
-- **Update Progress:** Mark tasks as `In Progress` when you start working, and `Resolved` when it's fixed!
-
-### 👑 3. Campus Admins
-- **God-Mode Dashboard:** See *every* request from *every* student in one massive grid.
-- **Assign Tasks:** Manually assign the Wi-Fi issue to the specific IT guy. 
-- **User Management:** See all users, change their roles, or delete old accounts. (Only Admins can make other people Admins!)
+### 3. Campus Admins
+- View all requests across the campus in a master dashboard.
+- Manually assign specific tasks to staff members.
+- Manage user accounts and roles.
 
 ---
 
-## 🛠️ Tech Stack (For the Nerds 🤓)
+## Tech Stack
 
-We wanted to learn modern web dev, so we used the good stuff:
-
-- **Frontend:** React 18 + Vite (super fast!)
-- **Language:** TypeScript (because debugging `undefined is not a function` at 2 AM sucks)
-- **Styling:** Tailwind CSS (made styling the dashboards so much easier)
-- **Icons:** Lucide React
-- **Backend & Database:** Firebase Auth + Cloud Firestore (Serverless architecture, no bulky backend!)
+- **Frontend:** React 18 + Vite
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Backend & DB:** Firebase Auth + Cloud Firestore
 - **Hosting:** Firebase Hosting
 
 ---
 
-## 🏃‍♂️ How to Run It on Your Laptop
+## Local Setup
 
-Want to run this locally or contribute? Awesome. Here's how:
+If you want to run this locally or contribute to the project:
 
-### Step 1: Clone & Install
+### 1. Clone & Install
 ```bash
 git clone https://github.com/Shreyank5478/Smart-Campus-Service-Management.git
 cd "Smart Campus Service Management"
 npm install
 ```
 
-### Step 2: Setup Firebase
-You'll need your own Firebase project if you don't have access to ours:
-1. Go to the [Firebase Console](https://console.firebase.google.com/) and create a project.
-2. Enable **Authentication** (Email/Password).
-3. Enable **Firestore Database**.
-4. Enable **Storage** (for image uploads).
-5. Copy your config keys into `src/firebase.ts`.
+### 2. Configure Firebase
+1. Create a project in the [Firebase Console](https://console.firebase.google.com/).
+2. Enable Authentication (Email/Password), Firestore Database, and Storage.
+3. Add your Firebase config keys into `src/firebase.ts`.
 
-### Step 3: Run the App
+### 3. Run the App
 ```bash
 npm run dev
 ```
-Boom! 💥 It'll open up on `http://localhost:3000`. 
+The app will be available at `http://localhost:3000`.
 
 ---
 
-## 🐛 Found a Bug?
-If something breaks (it probably will, we're students too 😅), just open an Issue on this repo! Or text us. 
-
-Happy coding, and let's keep the campus running smoothly! 🏫✨
+Found a bug or want to suggest a feature? Open an issue on this repository!
