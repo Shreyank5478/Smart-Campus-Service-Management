@@ -127,24 +127,12 @@ export default function App() {
     }
   }, []);
 
-  const handleAddRequest = useCallback((request: Omit<ServiceRequest, 'id' | 'status' | 'dateSubmitted' | 'statusUpdates'>) => {
-    const ticketNumber = `REQ${String(requests.length + 1).padStart(3, '0')}`;
-    const newRequest: ServiceRequest = {
-      ...request,
-      id: ticketNumber,
-      ticketNumber,
-      status: 'Pending',
-      dateSubmitted: new Date().toISOString().split('T')[0],
-      statusUpdates: [
-        {
-          status: 'Pending',
-          timestamp: new Date().toLocaleString(),
-          note: 'Request submitted'
-        }
-      ]
-    };
-    setRequests([newRequest, ...requests]);
-  }, [requests]);
+  // onSnapshot already picks up new requests automatically — no manual state update needed
+  const handleAddRequest = useCallback((_request: Omit<ServiceRequest, 'id' | 'status' | 'dateSubmitted' | 'statusUpdates'>) => {
+    // Intentionally empty: Firestore's onSnapshot listener in the useEffect above
+    // will automatically receive the new document and update the `requests` state.
+    // Adding to state manually here would cause a temporary duplicate (ghost request).
+  }, []);
 
   const handleUpdateRequest = useCallback(async (id: string, updates: Partial<ServiceRequest>) => {
     // 1. Update local state immediately (optimistic update) using functional setState
