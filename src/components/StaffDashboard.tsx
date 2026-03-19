@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo, memo } from 'react';
-import { LogOut, User, Clock, CheckCircle, AlertCircle, X, MessageSquare, FileText } from 'lucide-react';
+import { useState, useCallback, useMemo, memo } from 'react';
+import { LogOut, User, Clock, CheckCircle, AlertCircle, X, MessageSquare, FileText, Wrench } from 'lucide-react';
 import type { ServiceRequest } from '../App';
 
 interface StaffDashboardProps {
@@ -20,29 +20,24 @@ export const StaffDashboard = memo(({ user, requests, onUpdateRequest, onViewDet
   const [resolveModal, setResolveModal] = useState<ResolveModalData | null>(null);
   const [resolveNote, setResolveNote] = useState('');
 
-  // ✅ OPTIMIZATION: Memoize filtered requests to avoid recalculating on every render
   const myRequests = useMemo(() => requests.filter(req => req.assignedTo === user.name), [requests, user.name]);
   const unassignedRequests = useMemo(() => requests.filter(req => !req.assignedTo && req.status !== 'Resolved'), [requests]);
-  
+
   const getStatusColor = (status: ServiceRequest['status']) => {
     switch (status) {
-      case 'Pending': return 'bg-yellow-100 text-yellow-800';
-      case 'In Progress': return 'bg-blue-100 text-blue-800';
-      case 'Resolved': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'In Progress': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'Resolved': return 'bg-green-100 text-green-800 border-green-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getStatusIcon = (status: ServiceRequest['status']) => {
     switch (status) {
-      case 'Pending':
-        return <Clock className="w-5 h-5 text-yellow-500" />;
-      case 'In Progress':
-        return <AlertCircle className="w-5 h-5 text-blue-500" />;
-      case 'Resolved':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      default:
-        return null;
+      case 'Pending': return <Clock className="w-5 h-5 text-yellow-500" />;
+      case 'In Progress': return <AlertCircle className="w-5 h-5 text-blue-500" />;
+      case 'Resolved': return <CheckCircle className="w-5 h-5 text-green-500" />;
+      default: return null;
     }
   };
 
@@ -50,23 +45,12 @@ export const StaffDashboard = memo(({ user, requests, onUpdateRequest, onViewDet
     setUpdating(requestId);
     try {
       const existingRequest = requests.find(r => r.id === requestId);
-      if (!existingRequest) {
-        console.error('Request not found:', requestId);
-        setUpdating(null);
-        return;
-      }
-      
+      if (!existingRequest) { setUpdating(null); return; }
       const timestamp = new Date().toLocaleString();
-      const updatedData = {
+      onUpdateRequest(requestId, {
         status: newStatus,
-        statusUpdates: [
-          ...(existingRequest.statusUpdates || []),
-          { status: newStatus, timestamp, note }
-        ]
-      };
-      
-      onUpdateRequest(requestId, updatedData);
-      
+        statusUpdates: [...(existingRequest.statusUpdates || []), { status: newStatus, timestamp, note }]
+      });
       setResolveModal(null);
       setResolveNote('');
     } catch (err) {
@@ -78,19 +62,16 @@ export const StaffDashboard = memo(({ user, requests, onUpdateRequest, onViewDet
   const handlePickUpTask = useCallback(async (requestId: string) => {
     setUpdating(requestId);
     try {
-      const timestamp = new Date().toLocaleString();
       const currentRequest = requests.find(r => r.id === requestId);
-      
-      const updatedRequest = {
+      const timestamp = new Date().toLocaleString();
+      onUpdateRequest(requestId, {
         assignedTo: user.name,
         status: 'In Progress',
         statusUpdates: [
           ...(currentRequest?.statusUpdates || []),
           { status: 'In Progress', timestamp, note: `Picked up by ${user.name}` }
         ]
-      };
-      
-      onUpdateRequest(requestId, updatedRequest);
+      });
     } catch (err) {
       console.error('Error picking up task:', err);
     }
@@ -110,20 +91,21 @@ export const StaffDashboard = memo(({ user, requests, onUpdateRequest, onViewDet
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+
+      {/* ── Header ── matches Admin/Student exactly */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                 <FileText className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Smart Campus Service Management</h1>
-                <p className="text-sm text-gray-500">Staff Dashboard</p>
+                <h1 className="text-xl font-bold text-gray-900">Smart Campus - Staff Panel</h1>
+                <p className="text-sm text-gray-500">Service Request Management</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
                 <User className="w-5 h-5 text-blue-600" />
                 <div className="text-right">
@@ -133,62 +115,75 @@ export const StaffDashboard = memo(({ user, requests, onUpdateRequest, onViewDet
               </div>
               <button
                 onClick={onLogout}
-                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium"
               >
                 <LogOut className="w-5 h-5" />
-                <span className="text-sm">Logout</span>
+                <span>Logout</span>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+      {/* ── Main Content ── */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        {/* ── Stats Cards ── 4-column grid matching Admin style */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-gray-600 mb-1">My Tasks</p>
+                <p className="text-sm text-gray-600 mb-2">My Tasks</p>
                 <p className="text-3xl font-bold text-gray-900">{myRequests.length}</p>
               </div>
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-gray-600" />
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Wrench className="w-5 h-5 text-gray-400" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-gray-600 mb-1">In Progress</p>
+                <p className="text-sm text-gray-600 mb-2">In Progress</p>
                 <p className="text-3xl font-bold text-blue-600">
                   {myRequests.filter(r => r.status === 'In Progress').length}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <AlertCircle className="w-6 h-6 text-blue-600" />
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-5 h-5 text-blue-500" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Resolved</p>
+                <p className="text-sm text-gray-600 mb-2">Resolved</p>
                 <p className="text-3xl font-bold text-green-600">
                   {myRequests.filter(r => r.status === 'Resolved').length}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-600 mb-2">Available</p>
+                <p className="text-3xl font-bold text-yellow-500">{unassignedRequests.length}</p>
+              </div>
+              <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Clock className="w-5 h-5 text-yellow-500" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Available Tasks */}
+        {/* ── Available Tasks Table ── */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
             <div>
@@ -198,104 +193,97 @@ export const StaffDashboard = memo(({ user, requests, onUpdateRequest, onViewDet
             <span className="text-sm text-gray-500">{unassignedRequests.length} available</span>
           </div>
 
-          <div className="divide-y divide-gray-200">
-            {unassignedRequests.length === 0 ? (
-              <div className="px-6 py-8 text-center text-gray-500 text-sm">
-                All requests are currently assigned.
-              </div>
-            ) : (
-              unassignedRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="px-6 py-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-mono text-gray-500">{request.ticketNumber ?? request.id}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(request.status)}`}>
-                          {request.status}
-                        </span>
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                          {request.category}
-                        </span>
-                      </div>
-                      {request.imageUrl && (
-                        <img
-                          src={request.imageUrl}
-                          alt="Request"
-                          loading="lazy"
-                          className="w-12 h-12 object-cover rounded border border-gray-200"
-                        />
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900 mb-1">{request.description}</h3>
-                      <p className="text-sm text-gray-600">{request.location}</p>
-                      <p className="text-xs text-gray-500">Submitted on {request.dateSubmitted}</p>
-                    </div>
-                    <button
-                      onClick={() => handlePickUpTask(request.id)}
-                      disabled={updating === request.id}
-                      className="px-4 py-2 bg-purple-400 text-white rounded-lg hover:bg-purple-500 transition-colors disabled:bg-gray-300 font-medium text-sm"
-                    >
-                      {updating === request.id ? 'Picking Up...' : 'Pick Up Task'}
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          {unassignedRequests.length === 0 ? (
+            <div className="px-6 py-10 text-center text-gray-500 text-sm">
+              All requests are currently assigned.
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {unassignedRequests.map((request) => (
+                  <tr key={request.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 text-sm font-mono text-gray-500">{request.ticketNumber ?? request.id}</td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">{request.category}</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{request.description}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{request.location}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{request.dateSubmitted}</td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => handlePickUpTask(request.id)}
+                        disabled={updating === request.id}
+                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 font-medium text-sm"
+                      >
+                        {updating === request.id ? 'Picking Up...' : 'Pick Up'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
-        {/* My Tasks */}
+        {/* ── My Tasks Table ── */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="text-lg font-semibold text-gray-900">My Tasks</h2>
+          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">My Tasks</h2>
+              <p className="text-sm text-gray-500">Requests currently assigned to you</p>
+            </div>
+            <span className="text-sm text-gray-500">{myRequests.length} tasks</span>
           </div>
 
-          <div className="divide-y divide-gray-200">
-            {myRequests.length === 0 ? (
-              <div className="px-6 py-8 text-center text-gray-500 text-sm">
-                No tasks assigned to you yet.
-              </div>
-            ) : (
-              myRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="px-6 py-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-mono text-gray-500">{request.ticketNumber ?? request.id}</span>
+          {myRequests.length === 0 ? (
+            <div className="px-6 py-10 text-center text-gray-500 text-sm">
+              No tasks assigned to you yet.
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {myRequests.map((request) => (
+                  <tr key={request.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 text-sm font-mono text-gray-500">{request.ticketNumber ?? request.id}</td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">{request.category}</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{request.description}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{request.location}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1.5">
+                        {getStatusIcon(request.status)}
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(request.status)}`}>
                           {request.status}
                         </span>
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                          {request.category}
-                        </span>
                       </div>
-                      {request.imageUrl && (
-                        <img
-                          src={request.imageUrl}
-                          alt="Request"
-                          loading="lazy"
-                          className="w-12 h-12 object-cover rounded border border-gray-200"
-                        />
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900 mb-1">{request.description}</h3>
-                      <p className="text-sm text-gray-600 mb-1">{request.location}</p>
-                      <p className="text-xs text-gray-500">Submitted on {request.dateSubmitted}</p>
-                    </div>
-                    <div>
+                    </td>
+                    <td className="px-6 py-4">
                       {request.status === 'Pending' && (
                         <button
                           onClick={() => handleStatusUpdate(request.id, 'In Progress', 'Started working')}
                           disabled={updating === request.id}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 font-medium text-sm"
+                          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 font-medium text-sm"
                         >
                           {updating === request.id ? 'Starting...' : 'Start Work'}
                         </button>
@@ -304,26 +292,26 @@ export const StaffDashboard = memo(({ user, requests, onUpdateRequest, onViewDet
                         <button
                           onClick={() => openResolveModal(request)}
                           disabled={updating === request.id}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-300 font-medium text-sm"
+                          className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-300 font-medium text-sm"
                         >
-                          {updating === request.id ? 'Completing...' : 'Mark as Complete'}
+                          {updating === request.id ? 'Completing...' : 'Mark Complete'}
                         </button>
                       )}
                       {request.status === 'Resolved' && (
-                        <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm font-medium border border-green-200">
-                          ✓ Completed
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-lg text-sm font-medium border border-green-200">
+                          <CheckCircle className="w-3.5 h-3.5" /> Done
                         </span>
                       )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </main>
 
-      {/* Resolve Modal */}
+      {/* ── Resolve Modal ── */}
       {resolveModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
@@ -351,8 +339,8 @@ export const StaffDashboard = memo(({ user, requests, onUpdateRequest, onViewDet
               <p className="text-xs text-gray-500 mt-1">This note will be visible to the student and admin</p>
             </div>
             <div className="flex gap-3 p-4 border-t">
-              <button 
-                onClick={() => setResolveModal(null)} 
+              <button
+                onClick={() => setResolveModal(null)}
                 className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium"
               >
                 Cancel

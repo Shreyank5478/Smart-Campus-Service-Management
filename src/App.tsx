@@ -47,21 +47,28 @@ export default function App() {
         (snapshot) => {
           const firestoreRequests: ServiceRequest[] = snapshot.docs.map((doc) => {
             const data = doc.data();
-            const baseDate = typeof data.dateSubmitted === 'string' ? data.dateSubmitted : undefined;
-            const fallbackCode = baseDate
-              ? `REQ-${baseDate.slice(0, 10).replace(/-/g, '')}-${doc.id.slice(0, 4).toUpperCase()}`
-              : `REQ-${doc.id.slice(0, 6).toUpperCase()}`;
+            const rawDate = data.dateSubmitted;
+            const formattedDate = rawDate
+              ? (() => {
+                  try {
+                    return new Date(rawDate).toLocaleDateString('en-GB', {
+                      day: 'numeric', month: 'short', year: 'numeric'
+                    });
+                  } catch { return rawDate; }
+                })()
+              : '';
+
 
             return {
               id: doc.id,
-              ticketNumber: data.ticketNumber || fallbackCode,
+              ticketNumber: data.ticketNumber || `REQ-${doc.id.slice(0, 8).toUpperCase()}`,
               category: data.category || '',
               description: data.description || '',
               location: data.location || '',
               status: data.status || 'Pending',
               studentName: data.studentName || '',
               studentId: data.studentId || '',
-              dateSubmitted: data.dateSubmitted || '',
+              dateSubmitted: formattedDate,
               assignedTo: data.assignedTo,
               imageUrl: data.imageUrl,
               statusUpdates: data.statusUpdates || []

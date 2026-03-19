@@ -100,20 +100,8 @@ export function Login({ onLogin }: LoginProps) {
           return;
         }
 
-        // Check if email already exists in Firestore
-        try {
-          const userDocRef = doc(db, 'users', sanitizedEmail);
-          const userDoc = await getDoc(userDocRef);
-
-          if (userDoc.exists()) {
-            setError('This email is already registered. Please log in with your role.');
-            setLoading(false);
-            return;
-          }
-        } catch (firestoreError) {
-          console.error('Firestore check error:', firestoreError);
-          // Continue with signup even if Firestore check fails
-        }
+        // Note: Email uniqueness is enforced by Firebase Authentication itself.
+        // No need to check Firestore here.
 
         // Create user account
         const userCredential = await createUserWithEmailAndPassword(
@@ -127,22 +115,21 @@ export function Login({ onLogin }: LoginProps) {
           displayName: sanitizedName
         });
 
-        // Save user role to Firestore to enforce role consistency
+        // Save user doc keyed by UID so Firestore security rules can look it up via request.auth.uid
         try {
-          await setDoc(doc(db, 'users', sanitizedEmail), {
+          await setDoc(doc(db, 'users', userCredential.user.uid), {
             name: sanitizedName,
             email: sanitizedEmail,
             role: formData.role,
             uid: userCredential.user.uid,
             createdAt: new Date().toISOString()
           });
-          console.log('User saved to Firestore with role:', formData.role);
         } catch (firestoreError) {
           console.error('Firestore save error:', firestoreError);
         }
 
-        const id = formData.role === 'Admin' ? 'ADM001' : `STU${Date.now().toString().slice(-7)}`;
-        onLogin(sanitizedName, formData.role, id);
+        // Use the Firebase UID as the user ID throughout the app
+        onLogin(sanitizedName, formData.role, userCredential.user.uid);
       } else {
         // ===== SECURITY: Login Rate Limiting (already checked above) =====
         // Login with email and password
@@ -156,47 +143,41 @@ export function Login({ onLogin }: LoginProps) {
         let userData: { name?: string; role?: string } | null = null;
         let role = 'Student';
 
+        // Look up user doc by UID (the correct key that matches Firestore security rules)
         try {
-          const userDocRef = doc(db, 'users', sanitizedEmail);
+          const userDocRef = doc(db, 'users', userCredential.user.uid);
           const userDoc = await getDoc(userDocRef);
 
           if (userDoc.exists()) {
             userData = userDoc.data() as { name?: string; role?: string };
             role = userData?.role || 'Student';
           } else {
-            // Create user entry if not found
+            // Fallback: try old email-keyed doc (for users created before this fix)
             try {
-              const displayName = sanitizeInput(
-                userCredential.user.displayName || sanitizedEmail.split('@')[0]
-              );
-              await setDoc(doc(db, 'users', sanitizedEmail), {
-                name: displayName,
-                email: sanitizedEmail,
-                role: 'Student',
-                uid: userCredential.user.uid,
-                createdAt: new Date().toISOString()
-              });
-              // Note: userCredential.user.displayName is read-only after creation.
-              // The name is stored in Firestore and will be read back via userData below.
-            } catch (createError) {
-              console.error('Could not create user entry:', createError);
-            }
+              const oldDocRef = doc(db, 'users', sanitizedEmail);
+              const oldDoc = await getDoc(oldDocRef);
+              if (oldDoc.exists()) {
+                userData = oldDoc.data() as { name?: string; role?: string };
+                role = userData?.role || 'Student';
+                // Migrate: re-save with UID as key
+                await setDoc(doc(db, 'users', userCredential.user.uid), {
+                  ...oldDoc.data(),
+                  uid: userCredential.user.uid
+                });
+              }
+            } catch (_) {}
           }
         } catch (firestoreError) {
           console.error('Firestore fetch error:', firestoreError);
-          // If Firestore fails, keep the default role
         }
 
-        // Prefer Firestore name so it matches Admin "Assign To" values
         const displayName =
           (userData?.name && String(userData.name)) ||
           userCredential.user.displayName ||
           formData.email.split('@')[0];
-        const id = role === 'Admin' ? 'ADM001' : `STU${Date.now().toString().slice(-7)}`;
 
-        console.log('Login successful:', { displayName, role, email: formData.email });
-        // Call onLogin to update React state - this handles navigation within the app
-        onLogin(displayName, role, id);
+        // Use Firebase UID as the user ID throughout the app
+        onLogin(displayName, role, userCredential.user.uid);
       }
     } catch (err: unknown) {
       // Show user-friendly error messages
