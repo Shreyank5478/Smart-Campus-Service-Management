@@ -1,44 +1,77 @@
+# 🎓 Smart Campus Service Management
 
-    # Smart Campus Service Management
+Hey everyone! 👋 Welcome to the **Smart Campus Service Request System**. 
 
-    React + Firebase implementation of the Smart Campus Service Management system.
-    The original design reference is available at:
-    https://www.figma.com/design/dHDjH2e1Zp0Kc2sAztsTwU/Smart-Campus-Service-Management
+This is a project we built to solve a huge problem on campus: broken things staying broken because nobody knows who to tell. 
 
-    ## Stack
+Whether it's a broken light in the library, terrible Wi-Fi in the hostel, or a dripping pipe in the classroom, this app lets students report issues, staff pick them up, and admins oversee everything. 
 
-    - React 18 with Vite
-    - TypeScript
-    - Tailwind CSS (utility classes + design tokens in `src/styles/globals.css`)
-    - Firebase Authentication & Cloud Firestore (see `src/firebase.ts`)
+It's deployed live here: **[🔗 https://campus-fdb87.web.app](https://campus-fdb87.web.app)**
 
-    ## Running the app
+---
 
-    1. Install dependencies:
+## 🚀 What Does It Do?
 
-      - `npm i`
+We built this with 3 main roles in mind:
 
-    2. Configure Firebase:
+### 🎒 1. Students (You and Me)
+- **Sign In/Sign Up:** Jump right in with your student email.
+- **Raise Requests:** Found a broken fan in Classroom 204? Take a photo, write a quick description, select the "Electrical" category, and hit submit. 
+- **Track It:** See your active requests in your dashboard. Watch the status change from `Pending` ➡ `In Progress` ➡ `Resolved`.
 
-      - Follow the steps in `FIREBASE_SETUP.md` to create a Firebase project
-      - Update the config object in `src/firebase.ts` with your own credentials
+### 🛠️ 2. Staff & Technicians
+- **Available Tasks:** See a feed of all unassigned student requests on campus.
+- **Pick Up Work:** See a plumbing issue nearby? Click "Pick Up Task" and it moves to your personal queue.
+- **Update Progress:** Mark tasks as `In Progress` when you start working, and `Resolved` when it's fixed!
 
-    3. Start the development server:
+### 👑 3. Campus Admins
+- **God-Mode Dashboard:** See *every* request from *every* student in one massive grid.
+- **Assign Tasks:** Manually assign the Wi-Fi issue to the specific IT guy. 
+- **User Management:** See all users, change their roles, or delete old accounts. (Only Admins can make other people Admins!)
 
-      - `npm run dev`
+---
 
-    The app will be available on the local URL printed by Vite.
+## 🛠️ Tech Stack (For the Nerds 🤓)
 
-    ## Build
+We wanted to learn modern web dev, so we used the good stuff:
 
-    - `npm run build` – create a production build in the `build/` directory.
+- **Frontend:** React 18 + Vite (super fast!)
+- **Language:** TypeScript (because debugging `undefined is not a function` at 2 AM sucks)
+- **Styling:** Tailwind CSS (made styling the dashboards so much easier)
+- **Icons:** Lucide React
+- **Backend & Database:** Firebase Auth + Cloud Firestore (Serverless architecture, no bulky backend!)
+- **Hosting:** Firebase Hosting
 
-    ## Key screens
+---
 
-    - Login / Sign Up (email + password, role-aware)
-    - Student Dashboard – raise and track personal service requests
-    - Staff Dashboard – pick up, progress, and resolve assigned requests
-    - Admin Dashboard – view all requests, filter, assign to staff, and manage users
+## 🏃‍♂️ How to Run It on Your Laptop
 
-    For additional AI/editor guidelines, see `src/guidelines/Guidelines.md`.
-  
+Want to run this locally or contribute? Awesome. Here's how:
+
+### Step 1: Clone & Install
+```bash
+git clone https://github.com/Shreyank5478/Smart-Campus-Service-Management.git
+cd "Smart Campus Service Management"
+npm install
+```
+
+### Step 2: Setup Firebase
+You'll need your own Firebase project if you don't have access to ours:
+1. Go to the [Firebase Console](https://console.firebase.google.com/) and create a project.
+2. Enable **Authentication** (Email/Password).
+3. Enable **Firestore Database**.
+4. Enable **Storage** (for image uploads).
+5. Copy your config keys into `src/firebase.ts`.
+
+### Step 3: Run the App
+```bash
+npm run dev
+```
+Boom! 💥 It'll open up on `http://localhost:3000`. 
+
+---
+
+## 🐛 Found a Bug?
+If something breaks (it probably will, we're students too 😅), just open an Issue on this repo! Or text us. 
+
+Happy coding, and let's keep the campus running smoothly! 🏫✨
