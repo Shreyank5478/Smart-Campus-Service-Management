@@ -1,8 +1,9 @@
 # Smart Campus Service Management
 
-Welcome to the Smart Campus Service Request System. This project was built to solve a simple problem on campus: tracking and fixing broken infrastructure efficiently. 
+This is a personal side project I built to solve a problem I noticed at my college — when something breaks (a light, the Wi-Fi, a tap), there's no easy way for students to report it and actually track whether it gets fixed. So I built a simple web app for that.
 
-It allows students to report issues, staff to claim and resolve them, and admins to oversee the entire process.
+Built it using React, Firebase, and TypeScript. Learned a lot along the way — especially about Firebase security rules and deploying frontend apps.
+
 
 Live Deployment: **[https://campus-fdb87.web.app](https://campus-fdb87.web.app)**
 
